@@ -2,6 +2,7 @@
 #human extend from player to model user
 #computer extend from player to model dealer
 #card to model card, include value and suit
+#deck to model the card deck, include creating all 52 cards, and pop a new card
 #game to model the whole gaming process, include calculate value, determine win, and replay
 
 class Card
@@ -48,14 +49,6 @@ class Player
     @cards = [] #keep track of player's cards
   end
 
-  def print_cards
-    @string = ""
-    @cards.each do |card|
-      #@string + card.value.to_s + " of " card.suit.to_s
-    end
-    @string
-  end
-
 end
 
 module HelpMethods
@@ -89,7 +82,7 @@ module HelpMethods
 
     end #end if
 
-    if player.name == 'Matrix'
+    if player.name == 'Matrix' #if player is computer
       if player.player_sum > 21
         puts "Congrats, dealer just went bust, you win!"
       elsif player.player_sum == 21
@@ -97,9 +90,7 @@ module HelpMethods
       end
     end
 
-
-  end
-
+  end #end bust of blackjack
 
 end #end HelpMethods
 
@@ -144,9 +135,7 @@ class BlackJack
 
     p "#{player.name}, you have: #{player.cards}, your total is: #{player.player_sum}"
 
-    if player.player_sum == 21 #check if user hit BlackJack
-      p "Congradulations #{player.name}! You hit BlackJack!"
-    end
+    bust_or_blackjack?(player) #check if user hit BlackJack
 
     while player.player_sum < 21 #the player's turn
 
@@ -163,46 +152,35 @@ class BlackJack
       player.cards <<  @deck.pop
       player.player_sum = calculate_total(player.cards)
 
-      p "#{player.name}, you have: #{player.cards}"
-      puts "Your total is: #{player.player_sum}"
+      p "#{player.name}, you have: #{player.cards}, your total is: #{player.player_sum}"
 
-      if player.player_sum > 21
-        puts "KABOOM! #{player.name}, you went bust!"
-        break
-      elsif player.player_sum == 21
-        puts "BLACKJACK!!! Congrats #{player.name}, you win!"
-        break
-      end
+      bust_or_blackjack?(player)
 
     end#end while
 
   end#end player_turn
 
   def computer_turn(computer)
-    if computer.player_sum == 21 #the dealer's turn
-      p "Sorry, looks like dealer hit BlackJack..."
-      #exit
-    end
+
+    bust_or_blackjack?(computer)
 
     while computer.player_sum < 17
-      computer.cards << @deck.pop
-      p "The dealder's cards are: #{computer.cards}"
-      computer.player_sum = calculate_total(computer.cards)
 
-      if computer.player_sum > 21
-        puts "Congrats, dealer just went bust, you win!"
-      elsif computer.player_sum == 21
-        puts "Sorry, looks like dealder hit BlackJack..."
-      end
+      computer.cards << @deck.pop
+      computer.player_sum = calculate_total(computer.cards)
+      bust_or_blackjack?(computer)
+
     end #end of dealer's turn
 
   end #end computer_turn
 
   def check_win(computer, player, name)
+
     player.player_sum = calculate_total(player.cards)
     computer.player_sum = calculate_total(computer.cards)
     puts "your card total is: #{player.player_sum}"
     puts "dealer card total is: #{computer.player_sum}"
+
     if player.player_sum > computer.player_sum
       puts "Congrats #{name}, you win, top job!"
     elsif player.player_sum < computer.player_sum
@@ -210,7 +188,8 @@ class BlackJack
     elsif player.player_sum == computer.player_sum
       puts "Tie, no one wins."
     end
-  end
+
+  end #end check_win
 
   def replay
     begin
@@ -222,30 +201,26 @@ class BlackJack
         puts "================Thank you for playing!===================="
         puts "This game is created by Eugene Chang a.k.a ToxicStar, 2014"
         puts "=========================================================="
-        @playing == false
-        #exit
+        @playing = false
       end
     end until ['y','n'].include?(user_input)
-  end
+  end #end replay
 
   def play
      begin
        intro
        player_turn(@human)
-
-       if @human.player_sum < 21 #if player did not went bust
+       if @human.player_sum < 21 #if player did not went bust, execute computer's turn
          computer_turn(@computer)
-
-         if @computer.player_sum < 21 #if both player and dealer did not went bust
+         if @computer.player_sum < 21 #if both player and dealer did not went bust, check win
            check_win(@computer, @human, @human.name)
          end
        end
        replay
-     end until @playing = false
+     end until @playing == false
      exit
-  end
+  end #end play
 
-end
+end #end game
 
-#Deck.new.print
 BlackJack.new.play
