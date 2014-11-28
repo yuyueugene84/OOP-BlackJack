@@ -76,7 +76,32 @@ module HelpMethods
     return card_values.fetch(card)
   end
 
-end
+  def bust_or_blackjack?(player)
+    if player.name != 'Matrix' #player is not computer
+
+      if player.player_sum == 21 #check if user hit BlackJack
+        p "============================================"
+        p "BLACKJACK!!! #{player.name.upcase}! YOU WON!"
+        p "============================================"
+      elsif player.player_sum > 21
+        puts "KABOOM! #{player.name}, you went bust..."
+      end
+
+    end #end if
+
+    if player.name == 'Matrix'
+      if player.player_sum > 21
+        puts "Congrats, dealer just went bust, you win!"
+      elsif player.player_sum == 21
+        puts "Sorry, looks like dealder hit BlackJack..."
+      end
+    end
+
+
+  end
+
+
+end #end HelpMethods
 
 class Human < Player
   include HelpMethods
@@ -95,6 +120,7 @@ class BlackJack
     @deck = Deck.new
     @human = Human.new('Neo')
     @computer = Computer.new('Matrix')
+    @computer.name = "Matrix"
     @playing = true
 
     2.times do
@@ -111,18 +137,18 @@ class BlackJack
     puts "Welcome to Blackjack!"
     puts "Please enter your name:"
     @human.name = gets.chomp
+
   end
 
   def player_turn(player)
 
-    p "#{player.name}, you have: #{player.cards}, your total is #{player.player_sum}"
+    p "#{player.name}, you have: #{player.cards}, your total is: #{player.player_sum}"
 
     if player.player_sum == 21 #check if user hit BlackJack
       p "Congradulations #{player.name}! You hit BlackJack!"
     end
 
     while player.player_sum < 21 #the player's turn
-      #puts "You have "
 
       begin
         puts "#{player.name}, please enter one of the following choices: 1)Hit or 2)Stay"
@@ -141,8 +167,7 @@ class BlackJack
       puts "Your total is: #{player.player_sum}"
 
       if player.player_sum > 21
-        puts "KABOOM! #{player.player_sum}, you went bust!"
-        #exit
+        puts "KABOOM! #{player.name}, you went bust!"
         break
       elsif player.player_sum == 21
         puts "BLACKJACK!!! Congrats #{player.name}, you win!"
@@ -156,8 +181,7 @@ class BlackJack
   def computer_turn(computer)
     if computer.player_sum == 21 #the dealer's turn
       p "Sorry, looks like dealer hit BlackJack..."
-      #break
-      exit
+      #exit
     end
 
     while computer.player_sum < 17
@@ -193,26 +217,32 @@ class BlackJack
       puts "Do you want to play again? (Y/N)"
       user_input = gets.chomp.downcase
       if user_input == 'y'
-        break
+        BlackJack.new.play
       elsif user_input == 'n'
-        playing == false
-        exit
+        puts "================Thank you for playing!===================="
+        puts "This game is created by Eugene Chang a.k.a ToxicStar, 2014"
+        puts "=========================================================="
+        @playing == false
+        #exit
       end
-      #break if palying == false
     end until ['y','n'].include?(user_input)
-
   end
 
   def play
-    # begin
+     begin
        intro
        player_turn(@human)
-       computer_turn(@computer)
-       if @human.player_sum <= 21
-         check_win(@computer, @human, @human.name)
+
+       if @human.player_sum < 21 #if player did not went bust
+         computer_turn(@computer)
+
+         if @computer.player_sum < 21 #if both player and dealer did not went bust
+           check_win(@computer, @human, @human.name)
+         end
        end
        replay
-    # end while play = true
+     end until @playing = false
+     exit
   end
 
 end
