@@ -13,8 +13,8 @@ class Card
     @value = value
   end
 
-  def print_card
-    print "{#{value} of #{suit}}"
+  def to_s
+    "{#{value} of #{suit}}"
   end
 end
 
@@ -41,17 +41,15 @@ class Deck
 
 end
 
-class Player
-  attr_accessor :cards, :player_sum, :name, :string
-
-  def initialize(name)
-    @player_sum = 0 #keep track of the sum of the player's cards
-    @cards = [] #keep track of player's cards
-  end
-
-end
-
 module HelpMethods
+
+  def show_hand
+    puts "---- #{name}'s Hand ----"
+    cards.each do|card|
+      puts "=> #{card}"
+    end
+    puts "---- #{name}'s Total: #{calculate_total(cards)} ----"
+  end
 
   def calculate_total(cards)
     sum = 0
@@ -94,6 +92,26 @@ module HelpMethods
 
 end #end HelpMethods
 
+class Player
+  attr_accessor :cards, :player_sum, :name
+
+  def initialize(name)
+    @player_sum = 0 #keep track of the sum of the player's cards
+    @cards = [] #keep track of player's cards
+  end
+
+  def to_s
+    cards.each do |card|
+      "{#{card.value} of #{card.suit}}"
+    end
+  end
+
+  def show_flop
+    show_hand
+  end
+
+end
+
 class Human < Player
   include HelpMethods
 
@@ -106,6 +124,8 @@ end
 
 class BlackJack
   include HelpMethods
+
+  attr_accessor :human, :computer, :deck, :playing
 
   def initialize
     @deck = Deck.new
@@ -127,13 +147,12 @@ class BlackJack
   def intro
     puts "Welcome to Blackjack!"
     puts "Please enter your name:"
-    @human.name = gets.chomp
-
+    human.name = gets.chomp
   end
 
   def player_turn(player)
 
-    p "#{player.name}, you have: #{player.cards}, your total is: #{player.player_sum}"
+    player.show_flop #show player cards and values
 
     bust_or_blackjack?(player) #check if user hit BlackJack
 
@@ -149,10 +168,10 @@ class BlackJack
         break
       end
 
-      player.cards <<  @deck.pop
+      player.cards <<  deck.pop
       player.player_sum = calculate_total(player.cards)
 
-      p "#{player.name}, you have: #{player.cards}, your total is: #{player.player_sum}"
+      player.show_flop #show player cards and values
 
       bust_or_blackjack?(player)
 
@@ -163,10 +182,12 @@ class BlackJack
   def computer_turn(computer)
 
     bust_or_blackjack?(computer)
+    computer.show_flop #show computer's cards
 
     while computer.player_sum < 17
 
-      computer.cards << @deck.pop
+      computer.cards << deck.pop
+      computer.show_flop #show computer's cards
       computer.player_sum = calculate_total(computer.cards)
       bust_or_blackjack?(computer)
 
@@ -209,11 +230,11 @@ class BlackJack
   def play
      begin
        intro
-       player_turn(@human)
-       if @human.player_sum < 21 #if player did not went bust, execute computer's turn
-         computer_turn(@computer)
-         if @computer.player_sum < 21 #if both player and dealer did not went bust, check win
-           check_win(@computer, @human, @human.name)
+       player_turn(human)
+       if human.player_sum < 21 #if player did not went bust, execute computer's turn
+         computer_turn(computer)
+         if computer.player_sum < 21 #if both player and dealer did not went bust, check win
+           check_win(computer, human, human.name)
          end
        end
        replay
